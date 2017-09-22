@@ -1,0 +1,95 @@
+---
+
+postgresql_version: 9.6
+
+postgresql_apt_key_url: "https://www.postgresql.org/media/keys/ACCC4CF8.asc"
+postgresql_apt_repo: "deb http://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main"
+
+postgresql_config_dir: "/etc/postgresql/{{ postgresql_version }}/main"
+
+barman_system_user: barman
+barman_system_group: barman
+
+barman_role: client
+barman_backup_method: postgres # (postgres | rsync)
+
+barman_superuser_name: barman
+barman_superuser_password: barmanpasswd
+barman_streaming_user: streaming_barman
+barman_streaming_password: streamingbarmanpasswd
+
+barman_configuration_files_directory: /etc/barman.d
+barman_home_directory: /var/lib/barman
+barman_lock_directory: /var/run/barman
+barman_log_file: /var/log/barman/barman.log
+
+###### pg_basebackup specific options ######
+
+barman_streaming_backup_name: barman_streaming_backup
+
+barman_basebackup_retry_times: 0
+barman_basebackup_retry_sleep: 30
+
+###### rsync specific options ######
+
+barman_ssh_command: "ssh postgres@{{ ansible_host }}"
+
+barman_reuse_backup: 'off' # (off | link | copy)
+
+barman_backup_options: concurrent_backup # ( exclusive_backup | concurrent_backup )
+
+barman_archiver: on
+barman_archiver_batch_size: 0
+
+barman_bandwidth_limit: 0
+barman_tablespace_bandwidth_limit: "" # tbname:bwlimit[, tbname:bwlimit, ...]
+
+barman_network_compression: false # ( true | false )
+
+barman_parallel_jobs: 1 # pg_basebackup is currently limited to only one worker
+
+###### Common variables ######
+
+barman_description: "{{ inventory_hostname }} server"
+
+barman_conninfo: host={{ ansible_host }} port={{ postgresql_port|default(5432) }} user={{ barman_superuser_name }} dbname=postgres
+
+barman_streaming_conninfo: "host={{ ansible_host }} port={{ postgresql_port|default(5432) }} user={{ barman_streaming_user }}"
+
+barman_streaming_archiver: off
+barman_streaming_archiver_batch_size: 0
+barman_streaming_archiver_name: barman_receive_wal
+
+barman_slot_name: barman
+
+barman_path_prefix: "/usr/lib/postgresql/{{ postgresql_version }}/bin" # /usr/pgsql-9.6/bin
+
+barman_log_level: INFO # (NOTSET | DEBUG | INFO | WARNING | ERROR | CRITICAL)
+
+barman_compression: gzip # (None | bzip2 | gzip | pigz | pygzip | pybzip2 | custom)
+barman_custom_compression_filter: ""
+barman_custom_decompression_filter: ""
+
+barman_pre_backup_script: "" # env | grep ^BARMAN
+barman_pre_backup_retry_script: "" # env | grep ^BARMAN
+barman_post_backup_retry_script: "" # env | grep ^BARMAN
+barman_post_backup_script: "" # env | grep ^BARMAN
+
+barman_pre_archive_script: "" # env | grep ^BARMAN
+barman_pre_archive_retry_script: "" # env | grep ^BARMAN
+barman_post_archive_retry_script: "" # env | grep ^BARMAN
+barman_post_archive_script: "" # env | grep ^BARMAN
+
+barman_retention_policy: "" # (REDUNDANCY 2 | RECOVERY WINDOW OF 4 WEEKS)
+barman_retention_policy_mode: auto
+barman_wal_retention_policy: main
+
+barman_immediate_checkpoint: false
+
+barman_check_timeout: 30
+
+barman_last_backup_maximum_age: "" # i (DAYS | WEEKS | MONTHS)
+
+barman_minimum_redundancy: 0
+
+barman_recovery_options: "" # get-wal

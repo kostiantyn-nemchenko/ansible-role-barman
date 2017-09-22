@@ -1,0 +1,20 @@
+{% if not barman_streaming_archiver|bool %}
+; Connection string used by Barman to connect to the Postgres server via streaming 
+; replication protocol. By default it is set to the same value as conninfo
+streaming_conninfo = {{ barman_streaming_conninfo }}
+{% endif %}
+
+{% if barman_basebackup_retry_times|int > 0 %}
+; Number of retries of data copy during base backup after an error - default 0
+basebackup_retry_times = {{ barman_basebackup_retry_times }}
+{% endif -%}
+{% if barman_basebackup_retry_sleep|int != 30 %}
+; Number of seconds of wait after a failed copy, before retrying - default 30
+basebackup_retry_sleep = {{ barman_basebackup_retry_sleep }}
+{% endif -%}
+
+{% if barman_streaming_backup_name != 'barman_streaming_backup' %}
+; Identifier to be used as application_name by the pg_basebackup command. 
+; Only available with pg_basebackup >= 9.3. By default it is set to barman_streaming_backup
+streaming_backup_name = {{ barman_streaming_backup_name }}
+{% endif -%}

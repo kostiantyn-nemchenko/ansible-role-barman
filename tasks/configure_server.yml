@@ -1,0 +1,22 @@
+---
+
+- name: Create barman directories
+  file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  with_items:
+    - { path: "{{ barman_configuration_files_directory }}", owner: "{{ barman_system_user }}", group: "{{ barman_system_group }}", mode: "0755" }
+    - { path: "{{ barman_home_directory }}",                owner: "{{ barman_system_user }}", group: "{{ barman_system_group }}", mode: "0750" }
+    - { path: "{{ barman_lock_directory }}",                owner: "{{ barman_system_user }}", group: "{{ barman_system_group }}", mode: "0755" }
+    - { path: "{{ barman_log_file | dirname }}",            owner: "{{ barman_system_user }}", group: "{{ barman_system_group }}", mode: "0750" }
+
+- name: Tweak Barman server configuration settings
+  template:
+    src: barman.conf.j2
+    dest: /etc/barman.conf
+    owner: "{{ barman_system_user }}"
+    group: "{{ barman_system_group }}"
+    mode: "0644"

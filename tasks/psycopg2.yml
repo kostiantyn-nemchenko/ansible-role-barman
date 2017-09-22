@@ -1,0 +1,11 @@
+---
+
+- name: Install pip package
+  apt:
+    name: python-pip
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install psycopg2 adapter
+  pip: 
+    name: psycopg2

@@ -1,0 +1,10 @@
+---
+
+- include: install.yml
+  when: barman_role == "server"
+
+- include: configure_server.yml
+  when: barman_role == "server"
+
+- include: configure_client.yml
+  when: barman_role == "client"

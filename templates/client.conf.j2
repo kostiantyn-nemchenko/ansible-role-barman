@@ -1,0 +1,146 @@
+; Barman, Backup and Recovery Manager for PostgreSQL
+; http://www.pgbarman.org/ - http://www.2ndQuadrant.com/
+
+[{{ inventory_hostname }}]
+description = {{ barman_description }}
+
+; Method used by barman for backup execution
+backup_method = {{ barman_backup_method | default('postgres') }}
+
+; PostgreSQL connection string
+conninfo = {{ barman_conninfo }}
+
+{% if barman_streaming_archiver|bool %}
+; Connection string used by Barman to connect to the Postgres server via streaming 
+; replication protocol. By default it is set to the same value as conninfo
+streaming_conninfo = {{ barman_streaming_conninfo }}
+
+; This option allows you to use the PostgreSQL's streaming protocol to receive transaction logs 
+; from a server. This activates connection checks as well as management (including compression) 
+; of WAL files. If set to off (default) barman will rely only on continuous archiving for a 
+; server WAL archive operations, eventually terminating any running pg_receivexlog for the server.
+streaming_archiver = {{ barman_streaming_archiver }}
+{% if barman_streaming_archiver_batch_size|int > 0 %}
+; This option allows you to activate batch processing of WAL files for the streaming_archiver 
+; process, by setting it to a value > 0. Otherwise, the traditional unlimited processing of 
+; the WAL queue is enabled.
+streaming_archiver_batch_size = {{ barman_streaming_archiver_batch_size }}
+{% endif %}
+{% if barman_streaming_archiver_name != 'barman_receive_wal' %}
+; Identifier to be used as application_name by the receive-wal command. 
+; Only available with pg_receivexlog >= 9.3. By default it is set to barman_receive_wal
+streaming_archiver_name = {{ barman_streaming_archiver_name }}
+{% endif %}
+
+{% if barman_slot_name != 'barman' %}
+; Physical replication slot to be used by the receive-wal command when streaming_archiver is set 
+; to on. Requires postgreSQL >= 9.4
+slot_name = {{ barman_slot_name }}
+{% endif %}
+{% endif %}
+
+{% if not barman_archiver|bool %}
+; Whether the log shipping backup mechanism is active or not (defaults to true)
+archiver = {{ barman_archiver }}
+{% elif barman_archiver_batch_size|int > 0 %}
+; Setting this option enables batch processing of WAL files. 
+; The default processes all currently available files
+archiver_batch_size = {{ barman_archiver_batch_size }}
+{% endif %}
+
+{% include (barman_backup_method|default('postgres') + '.conf.j2') %}
+
+{% if barman_compression != 'gzip' %}
+; Default compression level: possible values are None (default), bzip2, gzip, pigz, pygzip, pybzip2 or custom
+compression = {{ barman_compression }}
+{% if barman_compression == 'custom' %}
+custom_compression_filter = {{ barman_custom_compression_filter }} 
+custom_decompression_filter = {{ barman_custom_decompression_filter }}
+{% endif %}
+{% endif %}
+
+{% if (barman_pre_backup_script != '') or (barman_pre_backup_retry_script != '') or (barman_post_backup_retry_script != '') or (barman_post_backup_script != '') %}
+; Pre/post backup hook scripts
+{% if barman_pre_backup_script != '' %}
+pre_backup_script = {{ barman_pre_backup_script }}
+{% endif %}
+{% if barman_pre_backup_retry_script != '' %}
+pre_backup_retry_script = {{ barman_pre_backup_retry_script }}
+{% endif %}
+{% if barman_post_backup_retry_script != '' %}
+post_backup_retry_script = {{ barman_post_backup_retry_script }}
+{% endif %}
+{% if barman_post_backup_script != '' %}
+post_backup_script = {{ barman_post_backup_script }}
+{% endif %}
+{% endif %}
+
+{% if (barman_pre_archive_script != '') or (barman_pre_archive_retry_script != '') or (barman_post_archive_retry_script != '') or (barman_post_archive_script != '') %}
+; Pre/post archive hook scripts
+{% if barman_pre_archive_script != '' %}
+pre_archive_script = {{ barman_pre_archive_script }}
+{% endif %}
+{% if barman_pre_archive_retry_script != '' %}
+pre_archive_retry_script = {{ barman_pre_archive_retry_script }}
+{% endif %}
+{% if barman_post_archive_retry_script != '' %}
+post_archive_retry_script = {{ barman_post_archive_retry_script }}
+{% endif %}
+{% if barman_post_archive_script != '' %}
+post_archive_script = {{ barman_post_archive_script }}
+{% endif %}
+{% endif %}
+
+{% if barman_retention_policy != '' %}
+; Server retention policy (REDUNDANCY or RECOVERY WINDOW) - default empty
+retention_policy = {{ barman_retention_policy }}
+
+{% if barman_retention_policy_mode != 'auto' %}
+; Can only be set to auto (retention policies are automatically enforced by the barman cron command)
+retention_policy_mode = {{ barman_retention_policy_mode }}
+{% endif %}
+
+{% if barman_wal_retention_policy != 'main' %}
+; WAL archive logs retention policy. Currently, the only allowed value is the special value main, 
+; that maps the retention policy of archive logs to that of base backups
+wal_retention_policy = {{ barman_wal_retention_policy }}
+{% endif %}
+{% endif %}
+
+{% if barman_immediate_checkpoint|bool %}
+; Immediate checkpoint for backup command - default false
+immediate_checkpoint = {{ barman_immediate_checkpoint }}
+{% endif %}
+
+{% if barman_check_timeout|int != 30 %}
+; Maximum execution time, in seconds, per server for a barman check command - default 30
+check_timeout = {{ barman_check_timeout }}
+{% endif %}
+
+{% if barman_last_backup_maximum_age != '' %}
+; Time frame that must contain the latest backup date.
+; If the latest backup is older than the time frame, barman check
+; command will report an error to the user.
+; If empty, the latest backup is always considered valid.
+; Syntax for this option is: "i (DAYS | WEEKS | MONTHS)" where i is an
+; integer > 0 which identifies the number of days | weeks | months of
+; validity of the latest backup for this check. Also known as 'smelly backup'.
+last_backup_maximum_age = {{ barman_last_backup_maximum_age }}
+{% endif %}
+
+{% if barman_minimum_redundancy|int > 0 %}
+; Minimum number of required backups (redundancy)
+minimum_redundancy = {{ barman_minimum_redundancy }}
+{% endif %}
+
+{% if barman_recovery_options != '' %}
+; The restore_command to write in the recovery.conf
+recovery_options = {{ barman_recovery_options }}
+{% endif %}
+
+{% if barman_path_prefix != '/usr/lib/postgresql/9.6/bin' %}
+; One or more absolute paths, separated by colon, where Barman looks for executable files. 
+; The paths specified in path_prefix are tried before the ones specified in PATH environment 
+; variable
+path_prefix = {{ barman_path_prefix }}
+{% endif %}

@@ -1,0 +1,138 @@
+; Barman, Backup and Recovery Manager for PostgreSQL
+; http://www.pgbarman.org/ - http://www.2ndQuadrant.com/
+;
+; Main configuration file
+
+[barman]
+; System user
+barman_user = {{ barman_system_user }}
+
+; Directory of configuration files. Place your sections in separate files with .conf extension
+; For example place the 'main' server section in /etc/barman.d/main.conf
+configuration_files_directory = {{ barman_configuration_files_directory }}
+
+; Main directory
+barman_home = {{ barman_home_directory }}
+
+; Locks directory - default: %(barman_home)s
+barman_lock_directory = {{ barman_lock_directory }}
+
+; Log location
+log_file = {{ barman_log_file }}
+
+; Log level (see https://docs.python.org/3/library/logging.html#levels)
+log_level = {{ barman_log_level }}
+
+; Default compression level: possible values are None (default), bzip2, gzip, pigz, pygzip, pybzip2 or custom
+compression = {{ barman_compression }}
+{% if barman_compression == 'custom' %}
+custom_compression_filter = {{ barman_custom_compression_filter }} 
+custom_decompression_filter = {{ barman_custom_decompression_filter }}
+{% endif %}
+
+; Pre/post backup hook scripts
+pre_backup_script = {{ barman_pre_backup_script }}
+pre_backup_retry_script = {{ barman_pre_backup_retry_script }}
+post_backup_retry_script = {{ barman_post_backup_retry_script }}
+post_backup_script = {{ barman_post_backup_script }}
+
+; Pre/post archive hook scripts
+pre_archive_script = {{ barman_pre_archive_script }}
+pre_archive_retry_script = {{ barman_pre_archive_retry_script }}
+post_archive_retry_script = {{ barman_post_archive_retry_script }}
+post_archive_script = {{ barman_post_archive_script }}
+
+; Global retention policy (REDUNDANCY or RECOVERY WINDOW) - default empty
+retention_policy = {{ barman_retention_policy }}
+; Can only be set to auto (retention policies are automatically enforced by the barman cron command)
+retention_policy_mode = {{ barman_retention_policy_mode }}
+; WAL archive logs retention policy. Currently, the only allowed value is the special value main, 
+; that maps the retention policy of archive logs to that of base backups
+wal_retention_policy = {{ barman_wal_retention_policy }}
+
+; Global bandwidth limit in KBPS - default 0 (meaning no limit)
+bandwidth_limit = {{ barman_bandwidth_limit }}
+; This option allows you to specify a maximum transfer rate in kilobytes per second, 
+; by specifying a comma separated list of tablespaces (pairs TBNAME:BWLIMIT). 
+; A value of zero specifies no limit (default)
+tablespace_bandwidth_limit = {{ barman_tablespace_bandwidth_limit }}
+
+; Number of parallel jobs for backup and recovery via rsync (default 1)
+parallel_jobs = {{ barman_parallel_jobs }}
+
+; Immediate checkpoint for backup command - default false
+immediate_checkpoint = {{ barman_immediate_checkpoint }}
+
+; Enable network compression for data transfers - default false
+network_compression = {{ barman_network_compression }}
+
+; Whether the log shipping backup mechanism is active or not (defaults to true)
+archiver = {{ barman_archiver }}
+; Setting this option enables batch processing of WAL files. 
+; The default processes all currently available files
+archiver_batch_size = {{ barman_archiver_batch_size }}
+
+; Behavior for backup operations: possible values are exclusive_backup (default) and concurrent_backup
+backup_options = {{ barman_backup_options }}
+
+; Incremental backup is a kind of full periodic backup which saves only data changes 
+; from the latest full backup available in the catalogue for a specific PostgreSQL server. 
+; Disabled if false. Default false.
+reuse_backup = {{ barman_reuse_backup }}
+
+; This option allows you to use the PostgreSQL's streaming protocol to receive transaction logs 
+; from a server. This activates connection checks as well as management (including compression) 
+; of WAL files. If set to off (default) barman will rely only on continuous archiving for a 
+; server WAL archive operations, eventually terminating any running pg_receivexlog for the server.
+streaming_archiver = {{ barman_streaming_archiver }}
+; This option allows you to activate batch processing of WAL files for the streaming_archiver 
+; process, by setting it to a value > 0. Otherwise, the traditional unlimited processing of 
+; the WAL queue is enabled.
+streaming_archiver_batch_size = {{ barman_streaming_archiver_batch_size }}
+; Identifier to be used as application_name by the receive-wal command. 
+; Only available with pg_receivexlog >= 9.3. By default it is set to barman_receive_wal
+streaming_archiver_name = {{ barman_streaming_archiver_name }}
+
+; Physical replication slot to be used by the receive-wal command when streaming_archiver is set 
+; to on. Requires postgreSQL >= 9.4
+slot_name = {{ barman_slot_name }}
+
+; Number of retries of data copy during base backup after an error - default 0
+basebackup_retry_times = {{ barman_basebackup_retry_times }}
+; Number of seconds of wait after a failed copy, before retrying - default 30
+basebackup_retry_sleep = {{ barman_basebackup_retry_sleep }}
+
+; Identifier to be used as application_name by the pg_basebackup command. 
+; Only available with pg_basebackup >= 9.3. By default it is set to barman_streaming_backup
+streaming_backup_name = {{ barman_streaming_backup_name }}
+
+; Maximum execution time, in seconds, per server for a barman check command - default 30
+check_timeout = {{ barman_check_timeout }}
+
+; Time frame that must contain the latest backup date.
+; If the latest backup is older than the time frame, barman check
+; command will report an error to the user.
+; If empty, the latest backup is always considered valid.
+; Syntax for this option is: "i (DAYS | WEEKS | MONTHS)" where i is an
+; integer > 0 which identifies the number of days | weeks | months of
+; validity of the latest backup for this check. Also known as 'smelly backup'.
+last_backup_maximum_age = {{ barman_last_backup_maximum_age }}
+
+; Minimum number of required backups (redundancy)
+minimum_redundancy = {{ barman_minimum_redundancy }}
+
+; The restore_command to write in the recovery.conf
+recovery_options = {{ barman_recovery_options }}
+
+; One or more absolute paths, separated by colon, where Barman looks for executable files. 
+; The paths specified in path_prefix are tried before the ones specified in PATH environment 
+; variable
+path_prefix = {{ barman_path_prefix }}
+
+; Examples of retention policies
+; Retention policy (disabled)
+;retention_policy =
+; Retention policy (based on redundancy)
+;retention_policy = REDUNDANCY 2
+; Retention policy (based on recovery window)
+;retention_policy = RECOVERY WINDOW OF 4 WEEKS

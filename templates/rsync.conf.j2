@@ -1,0 +1,36 @@
+; This option creates an SSH connection from the Barman server to the PostgreSQL server
+ssh_command = {{ barman_ssh_command }}
+
+{% if barman_bandwidth_limit|int > 0 %}
+; Global bandwidth limit in KBPS - default 0 (meaning no limit)
+bandwidth_limit = {{ barman_bandwidth_limit }}
+{% endif %}
+
+{% if barman_tablespace_bandwidth_limit != '' %}
+; This option allows you to specify a maximum transfer rate in kilobytes per second, 
+; by specifying a comma separated list of tablespaces (pairs TBNAME:BWLIMIT). 
+; A value of zero specifies no limit (default)
+tablespace_bandwidth_limit = {{ barman_tablespace_bandwidth_limit }}
+{% endif %}
+
+{% if barman_network_compression|bool %}
+; Enable network compression for data transfers - default false
+network_compression = {{ barman_network_compression }}
+{% endif %}
+
+{% if barman_parallel_jobs|int > 1 %}
+; Number of parallel jobs for backup and recovery via rsync (default 1)
+parallel_jobs = {{ barman_parallel_jobs }}
+{% endif %}
+
+{% if barman_backup_options != 'concurrent_backup' %}
+; Behavior for backup operations: possible values are exclusive_backup (default) and concurrent_backup
+backup_options = {{ barman_backup_options }}
+{% endif %}
+
+{% if barman_reuse_backup != 'off' %}
+; Incremental backup is a kind of full periodic backup which saves only data changes 
+; from the latest full backup available in the catalogue for a specific PostgreSQL server. 
+; Disabled if false. Default false.
+reuse_backup = {{ barman_reuse_backup }}
+{% endif %}
